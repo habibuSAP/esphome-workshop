@@ -1,0 +1,180 @@
+### ESP_HOME Device Base #######
+
+esphome:
+  name: esp-weather
+esp8266:
+  board: d1_mini
+
+#ota:
+# safe_mode: True
+logger:
+  level: debug
+web_server:
+wifi:
+  networks:
+    # -ssid SAP-Guest
+    - ssid: !secret wifi_ssid
+      password: !secret wifi_password
+
+sensor:
+  ### DHT11 Sensor #####
+  - platform: dht
+    pin:
+      number: D4
+      mode:
+        pullup: true
+        input: true
+    temperature:
+      name: "DHT Temp"
+      id: "dht_temperature"
+      unit_of_measurement: ˚C
+    humidity:
+      name: "DHT Humidity"
+      id: dht_humidity
+      unit_of_measurement: "%"
+    model: DHT11
+    update_interval: 15s
+
+    # BMP180 seetings ###
+  - platform: bmp085
+    #address: 0x77
+    temperature:
+      name: "Internal Temperature"
+      id: "internal_temperature"
+    pressure:
+      name: "Internal Pressure"
+      id: "internal_pressure"
+    update_interval: 55s
+
+  ### OPENWEATHERMAP
+  - platform: template
+    name: "Weather Temperature"
+    id: weather_temperature
+
+text_sensor:
+  ### OPENWEATHERMAP
+  - platform: template
+    name: "Weather Condition"
+    id: weather_condition
+
+i2c:
+  # sda: 21 D2
+  # scl: 22 D1
+  scan: true
+  id: bus_a
+
+interval:
+  - interval: 10s
+    then:
+      - logger.log: "Hello Habibu"
+  ### DISPLAY PAGING
+  - interval: 5s
+    then:
+      - display.page.show_next: my_display
+      - component.update: my_display
+  ### OPENWEATHERMAP
+  - interval: 1min
+    then:
+      - http_request.get:
+          url: http://api.openweathermap.org/data/2.5/onecall?lat=47.5&lon=19.0&appid=2b8b3f0d7ff2499ffbe901ab0cc70dab&lang=en&units=metric&exclude=minutely,hourly,daily,alerts
+          on_response:
+            then:
+              - lambda: |-
+                  json::parse_json(id(http_request_data).get_string(), [](JsonObject doc) {
+                    //-- Because ArduinoJson implements the Null Object Pattern, it is always safe to read the object: if the key doesn’t exist, it returns an empty value.
+                    auto current = doc["current"];
+
+                    float tempf = current["temp"];
+                    id(weather_temperature).publish_state(tempf);
+
+                    const char* weatherdesc = current["weather"][0]["description"];
+                    if (weatherdesc) id(weather_condition).publish_state(weatherdesc);
+                  });
+
+time:
+  ## Internet Time ####
+  - platform: sntp
+    id: sntp_time
+
+http_request:
+  ### OPENWEATHERMAP
+  useragent: esphome/device
+  timeout: 10s
+  id: http_request_data
+
+### OLED display ######
+display:
+  - platform: ssd1306_i2c
+    id: my_display
+    model: "SSD1306 64x48"
+    reset_pin: D0
+    address:
+      0x3C
+      #lambda: |- it.printf(0,12,id(font12), "Hello!");lambda: |-
+    pages:
+      # - id: page_helloworld
+      #   lambda: |-
+      #     it.printf(0, 12, id(font12), "Hello world");
+      - id: page_inside
+        lambda: |-
+          if (id(sntp_time).now().is_valid()) it.strftime(0, 0, id(font12bold), TextAlign::LEFT, "%H:%M:%S", id(sntp_time).now());
+          it.printf(0, 12, id(font12), TextAlign::LEFT, "%.1f hPa", id(internal_pressure).state);
+          it.printf(0, 24, id(font12), TextAlign::LEFT, "%.1f°C  %.0f%%", id(internal_temperature).state, id(dht_humidity).state);
+          it.image(0, 48-12, id(logo_slh_dshop));
+      - id: page_weather
+        lambda: |-
+          if (id(sntp_time).now().is_valid()) it.strftime(0, 0, id(font12bold), TextAlign::LEFT, "%H:%M:%S", id(sntp_time).now());
+          if (!isnan(id(weather_temperature).state)) {
+            it.printf(0, 12, id(font12), TextAlign::LEFT, "%s", id(weather_condition).state.c_str());
+            it.printf(0, 24, id(font12), TextAlign::LEFT, "%.1f°C", id(weather_temperature).state);
+          } else {
+            it.printf(0, 18, id(font12), TextAlign::LEFT, "Betöltés... aka Loading..");
+          }
+          it.image(0, 48-12, id(logo_slh_dshop));
+
+image:
+  - file: "./img/logo_slh_dshop.png"
+    id: logo_slh_dshop
+    # resize: 64x12
+    type: BINARY
+
+font:
+  - id: font12
+    file: "./fonts/regupix_.ttf"
+    size: 10
+    glyphs: >-
+      !"'`%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzáÁéÉíÍóÓöÖőŐúÚüÜűŰ
+  - id: font12bold
+    file: "./fonts/regupixb.ttf"
+    size: 10
+    glyphs: >-
+      !"'`%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzáÁéÉíÍóÓöÖőŐúÚüÜűŰ
+### BUZZER #############################################################
+output:
+  - platform: esp8266_pwm
+    pin: D5
+    frequency: 1000 Hz
+    id: buzzer
+
+rtttl:
+  output: buzzer
+  id: my_rtttl
+
+button:
+  - platform: template
+    name: "Buzzer Button"
+    on_press:
+      - rtttl.play: "BociBoci:d=16,o=6,b=255:8c,8e,8c,8e,4g,4g"
+
+### BUTTON SHIELD #############################################################
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: D3
+      inverted: true
+    id: "button_shield_sensor"
+    name: "Button Shield Sensor"
+    on_click:
+      - rtttl.play: "BociBoci:d=16,o=6,b=255:8c,8e,8c,8e,4g,4g"
+    on_double_click:
+      - rtttl.play: "MissionImp:d=16,o=6,b=95:32d,32d#,32d,32d#,32d,32d#,32d,32d#,32d,32d,32d#,32e,32f,32f#,32g,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,g,8p,g,8p,a#,p,c7,p,g,8p,g,8p,f,p,f#,p,a#,g,2d,32p,a#,g,2c#,32p,a#,g,2c,a#5,8c,2p,32p,a#5,g5,2f#,32p,a#5,g5,2f,32p,a#5,g5,2e,d#,8d"
