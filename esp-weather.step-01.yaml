@@ -146,14 +146,14 @@ display:
           if (id(sntp_time).now().is_valid()) it.strftime(0, 0, id(font12bold), TextAlign::LEFT, "%H:%M:%S", id(sntp_time).now());
           if (!isnan(id(weather_temperature).state)) {
             it.printf(0, 12, id(font12), TextAlign::LEFT, "%s", id(weather_condition).state.c_str());
-            it.printf(0, 24, id(font12), TextAlign::LEFT, "%.1f°C", id(weather_temperature).state);
+            it.printf(0, 24, id(font12), TextAlign::LEFT, "%.1f°C Bauchi", id(weather_temperature).state);
           } else {
             it.printf(0, 18, id(font12), TextAlign::LEFT, "Betöltés.Loading");
           }
           it.image(0, 48-12, id(logo_slh_dshop));
       - id: page_bitcoin
         lambda: |-
-          it.image(0, 48-12, id(bitcoin_logo));
+          it.image(0, 0, id(bitcoin_logo));
 ### Unsupported Matrix LED platform
 
   # - platform: addressable_light
