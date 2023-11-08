@@ -89,7 +89,7 @@ interval:
   - interval: 3min
     then:
       - http_request.get:
-          url: http://api.openweathermap.org/data/2.5/onecall?lat=10.7&lon=9.9&appid=1185965819534a347bf273794806035a&lang=en&units=metric&exclude=minutely,hourly,daily,alerts
+          url: http://api.openweathermap.org/data/2.5/onecall?lat=10.77&lon=9.99&appid=1185965819534a347bf273794806035a&lang=en&units=metric&exclude=minutely,hourly,daily,alerts
           on_response:
             then:
               - lambda: |-
@@ -106,7 +106,7 @@ interval:
   - interval: 3min
     then:
       - http_request.get:
-          url: http://api.openweathermap.org/data/2.5/onecall?lat=47.4&lon=19.04&appid=1185965819534a347bf273794806035a&lang=en&units=metric&exclude=minutely,hourly,daily,alerts 
+          url: http://api.openweathermap.org/data/2.5/onecall?lat=41.10&lon=20.77&appid=1185965819534a347bf273794806035a&lang=en&units=metric&exclude=minutely,hourly,daily,alerts 
           on_response:
             then:
               - lambda: |- 
