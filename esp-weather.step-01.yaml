@@ -179,7 +179,7 @@ display:
           if (id(sntp_time).now().is_valid()) it.strftime(0,0, id(font12bold), TextAlign::LEFT, "%H:%M:%S", id(sntp_time).now());
           if (!isnan(id(weather_temperature_budapest).state)){
             it.printf(0, 12, id(font12), TextAlign::LEFT, "%s", id(weather_condition_budapest).state.c_str());
-            it.printf(0, 24, id(font12), TextAlign::LEFT, "%.1f°C BUD", id(weather_temperature_budapest).state);
+            it.printf(0, 24, id(font12), TextAlign::LEFT, "%.1f°C Miskolc", id(weather_temperature_budapest).state);
           } else {
             it.printf(0, 18, id(font12), TextAlign::LEFT, "Loading...");
           }
