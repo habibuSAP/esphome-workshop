@@ -190,8 +190,8 @@ display:
       - id: page_clock
         lambda: |-
           if (id(sntp_time).now().is_valid())
-          it.strftime(0,0, id(font19bold), TextAlign::CENTER, "%H:%M:S", id(sntp_time).now());
-          
+          it.strftime(0,0, id(font19bold), TextAlign::CENTER, "%H:%M:%S", id(sntp_time).now());
+
 ### Unsupported Matrix LED platform
 
   # - platform: addressable_light
