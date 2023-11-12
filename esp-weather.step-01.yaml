@@ -190,7 +190,7 @@ display:
       - id: page_clock
         lambda: |-
           if (id(sntp_time).now().is_valid())
-          it.strftime(0,0, id(font19bold), TextAlign::CENTER, "%H:%M:%S", id(sntp_time).now());
+          it.strftime(0,0, id(font19bold),"%H:%M:%S", id(sntp_time).now());
 
 ### Unsupported Matrix LED platform
 
@@ -230,6 +230,11 @@ font:
   - id: font12bold
     file: "./fonts/regupixb.ttf"
     size: 10
+    glyphs: >-
+      !"'`%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzáÁéÉíÍóÓöÖőŐúÚüÜűŰ
+  - id: font19bold
+    file: "./fonts/regupixb.ttf"
+    size: 13
     glyphs: >-
       !"'`%()+=,-_.:°0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyzáÁéÉíÍóÓöÖőŐúÚüÜűŰ
 
